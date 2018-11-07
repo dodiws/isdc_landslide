@@ -1,0 +1,170 @@
+{% load i18n mathfilters %}
+{% load humanize %}
+
+{% get_current_language as LANGUAGE_CODE %}
+{% get_current_language_bidi as LANGUAGE_BIDI %}
+<html lang="{{ LANGUAGE_CODE }}" dir="{{ LANGUAGE_BIDI | yesno:'rtl,ltr' }}">
+<head>
+
+<link href="{{ STATIC_URL }}geonode/css/ext-compatibility.css" rel="stylesheet" />
+<link href="{{ STATIC_URL }}lib/css/custom.css" rel="stylesheet" />
+<style>
+table#info {
+	width:90%;
+	border-top:1px solid #e5eff8;
+	/*border-right:1px solid #e5eff8;*/
+	margin:1em auto;
+	border-collapse:collapse;
+}
+
+table#info td{
+	color:#0D63AD;
+	border-bottom:1px solid #e5eff8;
+	/*border-left:1px solid #e5eff8;*/
+	padding:.3em 1em;
+}
+
+table#info tr.odd td {
+	background:#f7fbff
+}
+
+#pie_chart1{
+	width: 250 !important;
+	height:250 !important;
+}
+
+#pie_chart2{
+	width: 250 !important;
+	height:250 !important;
+}
+
+</style>
+<script type="text/javascript" src="https://www.google.com/jsapi"></script>
+<script type="text/javascript">
+    google.load("visualization", "1", {packages:["corechart"]});
+</script>
+
+</head>
+<body>
+
+<table id='info'>
+	<tr>
+		<td>{% trans "Settlement" %}</td>
+		<td><strong>{{name_en}}</strong></td>
+	</tr>
+	<!-- <tr>
+		<td>{% trans "Language" %}</td>
+		<td><strong>{{language_field}}</strong></td>
+	</tr> -->
+	<tr>
+		<td>{% trans "District" %}</td>
+		<td><strong>{{dist_na_en}}</strong></td>
+	</tr>
+	<tr>
+		<td>{% trans "Province" %}</td>
+		<td><strong>{{prov_na_en}}</strong></td>
+	</tr>
+	<!-- <tr>
+		<td>{% trans "Elevation" %}</td>
+		<td><strong>{% blocktrans %}{{elevation}} m above sea level{% endblocktrans %}</strong></td>
+	</tr> -->
+	<tr>
+		<td>{% trans "Area" %}</td>
+		<td><strong>{{area_sqm|div:1000000|floatformat|intcomma}} {% blocktrans %}km<sup>2</sup>{% endblocktrans %}</strong></td>
+	</tr>
+	<tr>
+		<td>{% trans "Total Population" %}</td>
+		<td><strong>{{vuid_population|floatformat:"0"|intcomma }}</strong></td>
+	</tr>
+	<tr>
+		<td>{% trans "Number of Buildings" %}</td>
+		<td><strong>{{vuid_buildings|floatformat:"0"|intcomma }}</strong></td>
+	</tr>
+<!-- 	<tr>
+		<td>{% trans "Landslide Susceptibility" %}</td>
+		<td>
+			<strong>{{landslide_risk}}</strong>
+		</td>
+	</tr> -->
+</table>
+
+<div class="infoPanelTitle">{% trans "Landslide Susceptibility" %}<sup>*</sup> :</div>
+
+<table class='tblborder'>
+	<tr>
+		<th bgcolor="#FFFFFF" style="border-top: hidden;border-left: hidden;"><div class="rotate"></div></th>
+		<th bgcolor="#FFFFFF"><div class="rotate">{% trans "No Risk" %}</div></th>
+		<th bgcolor="#8cea8a"><div class="rotate">{% trans "Very Low" %}</div></th>
+		<th bgcolor="#1eb263"><div class="rotate">{% trans "Low" %}</div></th>
+		<th bgcolor="#fff231"><div class="rotate">{% trans "Moderate" %}</div></th>
+		<th bgcolor="#ff7f00"><div class="rotate">{% trans "High" %}</div></th>
+		<th bgcolor="#e31a1c"><div class="rotate">{% trans "Very High" %}</div></th>
+	</tr>
+	<tr>
+		<td bgcolor="#FFFFFF" class="" style="max-width:200px;"><span style="font-size: small;text-align: left;">{% trans "Landslide Indexes (iMMAP 2017)" %}</span></td>
+		<td bgcolor="#FFFFFF" class="">{% if landslide_risk == "None" %} X {% endif %}</td>
+		<td bgcolor="#8cea8a" class="">{% if landslide_risk == "Very Low" %} X {% endif %}</td>
+		<td bgcolor="#1eb263" class="">{% if landslide_risk == "Low" %} X {% endif %}</td>
+		<td bgcolor="#fff231" class="">{% if landslide_risk == "Moderate" %} X {% endif %}</td>
+		<td bgcolor="#ff7f00" class="">{% if landslide_risk == "High" %} X {% endif %}</td>
+		<td bgcolor="#e31a1c" class="">{% if landslide_risk == "Very High" %} X {% endif %}</td>
+	</tr>
+	<tr>
+		<td bgcolor="#FFFFFF" class="" style="max-width:200px;"><span style="font-size: small;text-align: left;">{% trans "Multi-criteria Landslide Susceptibility Index *" %}</span></td>
+		<td bgcolor="#FFFFFF" class="">{% if landslide_risk_lsi_ku == "None" %} X {% endif %}</td>
+		<td bgcolor="#8cea8a" class="">{% if landslide_risk_lsi_ku == "Very Low" %} X {% endif %}</td>
+		<td bgcolor="#1eb263" class="">{% if landslide_risk_lsi_ku == "Low" %} X {% endif %}</td>
+		<td bgcolor="#fff231" class="">{% if landslide_risk_lsi_ku == "Moderate" %} X {% endif %}</td>
+		<td bgcolor="#ff7f00" class="">{% if landslide_risk_lsi_ku == "High" %} X {% endif %}</td>
+		<td bgcolor="#e31a1c" class="">{% if landslide_risk_lsi_ku == "Very High" %} X {% endif %}</td>
+	</tr>
+	<tr>
+		<td bgcolor="#FFFFFF" class="" style="max-width:200px;"><span style="font-size: small;text-align: left;">{% trans "Landslide susceptibility - bedrock landslides in slow evolution (S1)**" %}</span></td>
+		<td bgcolor="#FFFFFF" class="">{% if landslide_risk_ls_s1_wb == "None" %} X {% endif %}</td>
+		<td bgcolor="#8cea8a" class="">{% if landslide_risk_ls_s1_wb == "Very Low" %} X {% endif %}</td>
+		<td bgcolor="#1eb263" class="">{% if landslide_risk_ls_s1_wb == "Low" %} X {% endif %}</td>
+		<td bgcolor="#fff231" class="">{% if landslide_risk_ls_s1_wb == "Moderate" %} X {% endif %}</td>
+		<td bgcolor="#ff7f00" class="">{% if landslide_risk_ls_s1_wb == "High" %} X {% endif %}</td>
+		<td bgcolor="#e31a1c" class="">{% if landslide_risk_ls_s1_wb == "Very High" %} X {% endif %}</td>
+	</tr>
+	<tr>
+		<td bgcolor="#FFFFFF" class="" style="max-width:200px;"><span style="font-size: small;text-align: left;">{% trans "Landslide susceptibility - bedrock landslides in rapid evolution (S2)**" %}</span></td>
+		<td bgcolor="#FFFFFF" class="">{% if landslide_risk_ls_s2_wb == "None" %} X {% endif %}</td>
+		<td bgcolor="#8cea8a" class="">{% if landslide_risk_ls_s2_wb == "Very Low" %} X {% endif %}</td>
+		<td bgcolor="#1eb263" class="">{% if landslide_risk_ls_s2_wb == "Low" %} X {% endif %}</td>
+		<td bgcolor="#fff231" class="">{% if landslide_risk_ls_s2_wb == "Moderate" %} X {% endif %}</td>
+		<td bgcolor="#ff7f00" class="">{% if landslide_risk_ls_s2_wb == "High" %} X {% endif %}</td>
+		<td bgcolor="#e31a1c" class="">{% if landslide_risk_ls_s2_wb == "Very High" %} X {% endif %}</td>
+	</tr>
+	<tr>
+		<td bgcolor="#FFFFFF" class="" style="max-width:200px;"><span style="font-size: small;text-align: left;">{% trans "Landslide susceptibility - cover material in rapid evolution (S3) **" %}</span></td>
+		<td bgcolor="#FFFFFF" class="">{% if landslide_risk_ls_s3_wb == "None" %} X {% endif %}</td>
+		<td bgcolor="#8cea8a" class="">{% if landslide_risk_ls_s3_wb == "Very Low" %} X {% endif %}</td>
+		<td bgcolor="#1eb263" class="">{% if landslide_risk_ls_s3_wb == "Low" %} X {% endif %}</td>
+		<td bgcolor="#fff231" class="">{% if landslide_risk_ls_s3_wb == "Moderate" %} X {% endif %}</td>
+		<td bgcolor="#ff7f00" class="">{% if landslide_risk_ls_s3_wb == "High" %} X {% endif %}</td>
+		<td bgcolor="#e31a1c" class="">{% if landslide_risk_ls_s3_wb == "Very High" %} X {% endif %}</td>
+	</tr>
+</table>
+<div class="disc_text">{% blocktrans %}<sup>*</sup> University of Kansas / University of Nebraska Omaha. Nathan Schlagel, et al (2016){% endblocktrans %}</div>
+<div class="disc_text">{% blocktrans %}<sup>**</sup> World Bank (2016){% endblocktrans %}</div>
+
+<div class="infoPanelTitle">{% trans "Multi-criteria Landslide Susceptibility Index" %} :</div>
+<div class="disc_text">{% blocktrans %}Layers were combined as a weighted overlay to create a landslide susceptibility index (LSI). Lithology, fault, river, and road data compiled by the USGS were derived from both pre- and mid-war sources of varying detail. A 10 year subset of earthquake data was used to reduce processing time; earthquake density was weighted by magnitude. An NDVI tile was used as vegetation data covering most of the country. Slope and aspect data were derived from 90m SRTM. Aspect and earthquake density diagrams not included because of their small scale features. Each factor was assigned weights for their own min-max range, and expected contribution to landslide susceptibility relative to each other developed through literature review.  Published studies of known landslides and corresponding Google Earth imagery were compared to same locations in the landslide susceptibility map.{% endblocktrans %}</div>
+
+<div class="infoPanelTitle">{% trans "Resolution 500m" %} :</div>
+<div class="disc_text">{% blocktrans %}Observations Model results show high LSI values in areas with observed failures. Loess, granite, and schist/gneiss are the most susceptible lithologies with greatest risks in regions of high seismicity and faulting. Results appear to show slide deposits as lower susceptibility, and source slopes as higher, which may be used to assess reactivation potential. Such techniques can be widely applied. However, the uniqueness associated with assignment of relative weights to contributing factors makes models for any given location unique and inapplicable to other areas without alteration. Although advances in methodology and data quality would allow for improvements in landslide susceptibility analyses, comparisons in this study show that reasonable approximations can still be made with relatively coarse data sets.{% endblocktrans %}</div>
+
+<div class="infoPanelTitle">{% trans "Landslide susceptibility - bedrock landslides in slow evolution (S1)" %} :</div>
+<div class="disc_text">{% blocktrans %}including: rotational slides, translational slides, earth flows and lateral spreading. Susceptibility values are represented according the following scale: 0=Null; 1-3=Low; 4-5=Moderate; 6=High; 7-9=Very High	{% endblocktrans %}</div>
+<div class="disc_text">{% blocktrans %}Resolution: 30m. A spatial distribution of landslide susceptibility is defined using a GIS based, weighted scoring of contributing factors, including slope angle, lithology, landcover, terrain curvature, distance from geological faults, and distance from roads. These sources are modelled flow(run-out) and accumulation of debris areas to create landslide hazard maps.{% endblocktrans %}</div>
+
+<div class="infoPanelTitle">{% trans "Landslide susceptibility - bedrock landslides in rapid evolution (S2)" %} :</div>
+<div class="disc_text">{% blocktrans %}Afghanistan landslide susceptibility map for bedrock landslides in rapid evolution (S2), nationwide. This map shows the susceptibility for bedrock landslides in rapid evolution, including: falls and toppling. Susceptibility values are represented according the following scale: 0=Null; 1-3=Low; 4-5=Moderate; 6=High; 7-9=Very High{% endblocktrans %}</div>
+
+<div class="infoPanelTitle">{% trans "Landslide susceptibility - cover material in rapid evolution (S3) " %} :</div>
+<div class="disc_text">{% blocktrans %}Afghanistan landslide susceptibility map for cover material landslides in rapid evolution (S3), nationwide. This map shows the susceptibility for cover material landslides in rapid evolution, including: debris-mud flows. Susceptibility values are represented according the following scale: 0=Null; 1-3=Low; 4-5=Moderate; 6=High; 7-9=Very High{% endblocktrans %}</div>
+
+
+</body>
+</html>
