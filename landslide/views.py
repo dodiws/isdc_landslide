@@ -97,10 +97,18 @@ import urllib
 # import urllib2
 from geodb.enumerations import LANDSLIDE_TYPES
 
-def get_dashboard_meta(page_name):
-    if page_name == 'landslide':
-        return {'function':dashboard_landslide, 'template':'dash_landslide.html'}
-    return None
+def get_dashboard_meta():
+	return {
+		'pages': [
+			{
+				'name': 'landslide',
+				'function': dashboard_landslide, 
+				'template': 'dash_landslide.html',
+				'menutitle': 'Landslide',
+			},
+		],
+		'menutitle': 'Landslide',
+	}
 
 def getQuickOverview(request, filterLock, flag, code, includes=[], excludes=[]):
     response = {}
