@@ -1,1 +1,285 @@
 {% extends "dashboard_base.html" %}
+{% load i18n %}
+{% load base_tags %}
+{% load app_filters %}
+
+{% block dashboard_breadcrumb %} 
+    <a href="{% url "dashboard_detail" %}?page=landslide" class="breadcrumb">{% trans "Landslide" %}</a>
+    {% include "links_title.html" %}
+{% endblock dashboard_breadcrumb %}
+
+{% block dashboard_content %}
+    <div class="row">
+        {% include "qlink_list.html" %}
+    </div>
+
+    <div class="row">
+        <div class="col s12">
+            <div class="card">
+                <div class="card-content">
+                    <span class="card-title">
+                        {% trans "Map" %}
+                    </span>
+                    <div class="row">
+                        <div class="col s12 l3 xl2">
+                            <div id="layercontrol">
+                                <div class="input-field">
+                                    <select id="landslideOpt">
+                                        <option value="landslide_checkbox_ku">Multi-criteria Susceptibility Index</option>
+                                        <option value="landslide_checkbox_s1">Landslide Susceptibility (S1)</option>
+                                        <option value="landslide_checkbox_s2">Landslide Susceptibility (S2)</option>
+                                        <option value="landslide_checkbox_s3">Landslide Susceptibility (S3)</option>
+                                        <option value="landslide_checkbox_immap">Landslide Indexes (iMMAP 2017)</option>
+                                    </select>
+                                    <label for="ariskOpt">Choose Layer :</label>
+                                </div>
+
+                                <div class="input-field">
+                                    <span>WMS Layer</span>
+                                    <div class="switch right wms_check">
+                                        <label class="landslide_checkbox_ku landslide_opt">
+                                            <input type="checkbox" data-type=wms data-layer=ku>
+                                            <span class="lever"></span>
+                                        </label>
+                                        <label style='display:none;' class="landslide_checkbox_s1 landslide_opt">
+                                            <input type="checkbox" data-type=wms data-layer=s1>
+                                            <span class="lever"></span>
+                                        </label>
+                                        <label style='display:none;' class="landslide_checkbox_s2 landslide_opt">
+                                            <input type="checkbox" data-type=wms data-layer=s2>
+                                            <span class="lever"></span>
+                                        </label>
+                                        <label style='display:none;' class="landslide_checkbox_s3 landslide_opt">
+                                            <input type="checkbox" data-type=wms data-layer=s3>
+                                            <span class="lever"></span>
+                                        </label>
+                                    </div>
+                                </div>
+
+                                <label for="lvl">Choose Level :</label>
+                                <div id="lvl" class="lvl_choice">
+                                    <div class="row landslide_checkbox_ku landslide_opt">
+                                        <div class="col s12">
+                                            <label>
+                                                <input type="checkbox" name="landslide_checkbox" class="filled-in" value="lsi_ku_low">
+                                                <span>Low</span>
+                                            </label>
+                                        </div>
+                                        <div class="col s12">
+                                            <label>
+                                                <input type="checkbox" name="landslide_checkbox" class="filled-in" value="lsi_ku_moderate">
+                                                <span>Moderate</span>
+                                            </label>
+                                        </div>
+                                        <div class="col s12">
+                                            <label>
+                                                <input type="checkbox" name="landslide_checkbox" class="filled-in" value="lsi_ku_high">
+                                                <span>High</span>
+                                            </label>
+                                        </div>
+                                        <div class="col s12">
+                                            <label>
+                                                <input type="checkbox" name="landslide_checkbox" class="filled-in" value="lsi_ku_very_high">
+                                                <span>Very High</span>
+                                            </label>
+                                        </div>
+                                    </div>
+                                    <div style='display:none;' class="row landslide_checkbox_s1 landslide_opt">
+                                        <div class="col s12">
+                                            <label>
+                                                <input type="checkbox" name="landslide_checkbox" class="filled-in" value="ls_s1_wb_low">
+                                                <span>Low</span>
+                                            </label>
+                                        </div>
+                                        <div class="col s12">
+                                            <label>
+                                                <input type="checkbox" name="landslide_checkbox" class="filled-in" value="ls_s1_wb_moderate">
+                                                <span>Moderate</span>
+                                            </label>
+                                        </div>
+                                        <div class="col s12">
+                                            <label>
+                                                <input type="checkbox" name="landslide_checkbox" class="filled-in" value="ls_s1_wb_high">
+                                                <span>High</span>
+                                            </label>
+                                        </div>
+                                        <div class="col s12">
+                                            <label>
+                                                <input type="checkbox" name="landslide_checkbox" class="filled-in" value="ls_s1_wb_very_high">
+                                                <span>Very High</span>
+                                            </label>
+                                        </div>
+                                    </div>
+                                    <div style='display:none;' class="row landslide_checkbox_s2 landslide_opt">
+                                        <div class="col s12">
+                                            <label>
+                                                <input type="checkbox" name="landslide_checkbox" class="filled-in" value="ls_s2_wb_low">
+                                                <span>Low</span>
+                                            </label>
+                                        </div>
+                                        <div class="col s12">
+                                            <label>
+                                                <input type="checkbox" name="landslide_checkbox" class="filled-in" value="ls_s2_wb_moderate">
+                                                <span>Moderate</span>
+                                            </label>
+                                        </div>
+                                        <div class="col s12">
+                                            <label>
+                                                <input type="checkbox" name="landslide_checkbox" class="filled-in" value="ls_s2_wb_high">
+                                                <span>High</span>
+                                            </label>
+                                        </div>
+                                        <div class="col s12">
+                                            <label>
+                                                <input type="checkbox" name="landslide_checkbox" class="filled-in" value="ls_s2_wb_very_high">
+                                                <span>Very High</span>
+                                            </label>
+                                        </div>
+                                    </div>
+                                    <div style='display:none;' class="row landslide_checkbox_s3 landslide_opt">
+                                        <div class="col s12">
+                                            <label>
+                                                <input type="checkbox" name="landslide_checkbox" class="filled-in" value="ls_s3_wb_low">
+                                                <span>Low</span>
+                                            </label>
+                                        </div>
+                                        <div class="col s12">
+                                            <label>
+                                                <input type="checkbox" name="landslide_checkbox" class="filled-in" value="ls_s3_wb_moderate">
+                                                <span>Moderate</span>
+                                            </label>
+                                        </div>
+                                        <div class="col s12">
+                                            <label>
+                                                <input type="checkbox" name="landslide_checkbox" class="filled-in" value="ls_s3_wb_high">
+                                                <span>High</span>
+                                            </label>
+                                        </div>
+                                        <div class="col s12">
+                                            <label>
+                                                <input type="checkbox" name="landslide_checkbox" class="filled-in" value="ls_s3_wb_very_high">
+                                                <span>Very High</span>
+                                            </label>
+                                        </div>
+                                    </div>
+                                    <div style='display:none;' class="row landslide_checkbox_immap landslide_opt">
+                                        <div class="col s12">
+                                            <label>
+                                                <input type="checkbox" name="landslide_checkbox" class="filled-in" value="lsi_immap_low">
+                                                <span>Low</span>
+                                            </label>
+                                        </div>
+                                        <div class="col s12">
+                                            <label>
+                                                <input type="checkbox" name="landslide_checkbox" class="filled-in" value="lsi_immap_moderate">
+                                                <span>Moderate</span>
+                                            </label>
+                                        </div>
+                                        <div class="col s12">
+                                            <label>
+                                                <input type="checkbox" name="landslide_checkbox" class="filled-in" value="lsi_immap_high">
+                                                <span>High</span>
+                                            </label>
+                                        </div>
+                                        <div class="col s12">
+                                            <label>
+                                                <input type="checkbox" name="landslide_checkbox" class="filled-in" value="lsi_immap_very_high">
+                                                <span>Very High</span>
+                                            </label>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+
+                                <label for="themes">Pick a theme :</label>
+                                <div id="themes">
+                                    <button class="theme active" data-btn="YlOrRd"></button>
+                                    <button class="theme" data-btn="PuRd"></button>
+                                    <button class="theme" data-btn="GnBu"></button>
+                                    <button class="theme" data-btn="Blues"></button>
+                                    <button class="theme" data-btn="BuGn"></button>
+                                    <button class="theme" data-btn="BuPu"></button>
+                                    <button class="theme" data-btn="Greens"></button>
+                                    <button class="theme" data-btn="Greys"></button>
+                                    <button class="theme" data-btn="Oranges"></button>
+                                    <button class="theme" data-btn="OrRd"></button>
+                                    <button class="theme" data-btn="PuBu"></button>
+                                    <button class="theme" data-btn="PuBuGn"></button>
+                                    <button class="theme" data-btn="Purples"></button>
+                                    <button class="theme" data-btn="RdPu"></button>
+                                    <button class="theme" data-btn="Reds"></button>
+                                    <button class="theme" data-btn="YlGn"></button>
+                                    <button class="theme" data-btn="YlGnBu"></button>
+                                    <button class="theme" data-btn="YlOrBr"></button>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col s12 l9 xl6">
+                            <div id="" class="map-size"></div>
+                        </div>
+                        <div class="col s12 l12 xl4">
+                            <div id="mapInfo"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        {% for chart_title, chart_val in panels.charts.items %}
+            <div class="col s12 m6 xl4">
+                <div class="card card-graph">
+                    <div class="card-header red darken-3 white-text z-depth-2">
+                        <span class="card-title">{{ chart_val.title }}</span>
+                        <i class="left"></i>
+                        <span class="card-title right">{% readable chart_val.total %}</span>
+                    </div>
+                    <div class="card-image">
+                        <div id="{{ chart_title }}" class="ch-size donut-chart" data-color=colorLandslide data-val='{{ chart_val.child | jsonify | safe }}'></div>
+                    </div>
+                </div>
+            </div>
+        {% endfor %}
+
+        <div class="col s12 xl12">
+            <div class="card">
+                <div class="card-content">
+                    <span class="card-title">
+                        {% trans "Population by Landslide Indexes (iMMAP 2017)" %}
+                    </span>
+                    <p>
+                        {% trans "Population within a weighted index of various landslide susceptibility models of Afghanistan. Landslide susceptibility - S1-S2- S3 (World Bank, 2016). Landslide Susceptibility Index (Schlagel, 2016)." %}
+                    </p>
+                    <div class="table-responsive-scroll">
+                        <table class="striped highlight online">
+                            <thead>
+                                <tr>
+                                    <th rowspan="2">{% trans "Region" %}</th>
+                                    <th colspan="4">{% trans "Risk Level" %}</th>
+                                </tr>
+                                <tr>
+                                    <th class="landslide_vhigh hum">{% trans "Very High" %}</th>
+                                    <th class="landslide_high hum">{% trans "High" %}</th>
+                                    <th class="landslide_mod hum">{% trans "Moderate" %}</th>
+                                    <th class="landslide_low hum">{% trans "Low" %}</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for parent in panels.adm_likelihood_pop_building_area.parentdata %}
+                                    <td class="boldRow">{{parent}}</td>
+                                {% endfor %}
+                                {% for child in panels.adm_likelihood_pop_building_area.child %}
+                                    <tr class="selectable" onclick="window.document.location='?page=avalancherisk&code={{child.code}}';">
+                                        {% for item in child.value %}
+                                            <td>{{item}}</td>
+                                        {% endfor %}
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+{% endblock %}
