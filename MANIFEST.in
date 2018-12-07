@@ -1,0 +1,6 @@
+include LICENSE
+include VERSION
+include README.rst
+recursive-include landslide/locale *
+recursive-include landslide/templates *
+recursive-include landslide/migrations *
