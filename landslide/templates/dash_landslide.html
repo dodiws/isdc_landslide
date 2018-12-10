@@ -225,61 +225,89 @@
             </div>
         </div>
 
-        {% for chart_title, chart_val in panels.charts.items %}
-            <div class="col s12 m6 xl4">
-                <div class="card card-graph">
-                    <div class="card-header red darken-3 white-text z-depth-2">
-                        <span class="card-title">{{ chart_val.title }}</span>
-                        <i class="left"></i>
-                        <span class="card-title right">{% readable chart_val.total %}</span>
+        {% for panel_item_type, panel_item_type_val in panels.items %}
+            {% for panel_type, panel_type_val in panel_item_type_val.items %}
+                {% if  panel_item_type == 'tables' %}
+                    <div class="col s12 xl8">
+                        <div class="card">
+                            <div class="card-content">
+                                <span class="card-title">
+                                    {{ panel_type_val.title }}
+                                </span>
+                                <p>
+                                    {{ panel_type_val.description }}
+                                </p>
+                                <div class="table-responsive-scroll">
+                                    <table class="striped highlight online">
+                                        <thead>
+                                            <tr>
+                                                <th rowspan="2">{% trans "Region" %}</th>
+                                                <th colspan="4">{% trans "Risk Level" %}</th>
+                                            </tr>
+                                            <tr>
+                                                <th class="landslide_vhigh hum">{% trans "Very High" %}</th>
+                                                <th class="landslide_high hum">{% trans "High" %}</th>
+                                                <th class="landslide_mod hum">{% trans "Moderate" %}</th>
+                                                <th class="landslide_low hum">{% trans "Low" %}</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {% for parent in panel_type_val.parentdata %}
+                                                <td class="boldRow">{{parent}}</td>
+                                            {% endfor %}
+                                            {% for child in panel_type_val.child %}
+                                                <tr class="selectable" onclick="window.document.location='?page=avalancherisk&code={{child.code}}';">
+                                                    {% for item in child.value %}
+                                                        <td>{{item}}</td>
+                                                    {% endfor %}
+                                                </tr>
+                                            {% endfor %}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
                     </div>
-                    <div class="card-image">
-                        <div id="{{ chart_title }}" class="ch-size donut-chart" data-color=colorLandslide data-val='{{ chart_val.child | jsonify | safe }}'></div>
-                    </div>
-                </div>
-            </div>
+                {% endif %}
+                {% for chart_type, chart_type_val in panel_type_val.items %}
+                    {% if  panel_item_type == 'charts' and panel_type == 'bar' %}
+                        <div class="col s12 m6 xl4">
+                            <div class="card card-graph">
+                                <div class="card-header red darken-3 white-text z-depth-2">
+                                    <span class="card-title">{{ chart_type_val.title }}</span>
+                                    <i class="left"></i>
+                                    <span class="card-title right">{% readable chart_type_val.total %}</span>
+                                </div>
+                                <div class="card-image">
+                                    <div id="{{ chart_type }}_bar" class="ch-size bar-chart" data-color=colorLandslide data-yaxis='{{ chart_type_val.labels | jsonify | safe }}' data-val='{{ chart_type_val.values | jsonify | safe }}'></div>
+                                </div>
+                            </div>
+                        </div>
+                    {% endif %}
+                    {% if  panel_item_type == 'charts' and panel_type == 'donut' %}
+                        <div class="col s12 m6 xl4">
+                            <div class="card card-graph">
+                                <div class="card-header red darken-3 white-text z-depth-2">
+                                    <span class="card-title">{{ chart_type_val.title }}</span>
+                                    <i class="left"></i>
+                                    <span class="card-title right">{% readable chart_type_val.total %}</span>
+                                </div>
+                                <div class="card-image">
+                                    <div id="{{ chart_type }}_donut" class="ch-size donut-chart" data-color=colorLandslide data-val='{{ chart_type_val.child | jsonify | safe }}'></div>
+                                </div>
+                            </div>
+                        </div>
+                    {% endif %}
+                {% endfor %}
+            {% endfor %}
         {% endfor %}
 
-        <div class="col s12 xl12">
-            <div class="card">
-                <div class="card-content">
-                    <span class="card-title">
-                        {% trans "Population by Landslide Indexes (iMMAP 2017)" %}
-                    </span>
-                    <p>
-                        {% trans "Population within a weighted index of various landslide susceptibility models of Afghanistan. Landslide susceptibility - S1-S2- S3 (World Bank, 2016). Landslide Susceptibility Index (Schlagel, 2016)." %}
-                    </p>
-                    <div class="table-responsive-scroll">
-                        <table class="striped highlight online">
-                            <thead>
-                                <tr>
-                                    <th rowspan="2">{% trans "Region" %}</th>
-                                    <th colspan="4">{% trans "Risk Level" %}</th>
-                                </tr>
-                                <tr>
-                                    <th class="landslide_vhigh hum">{% trans "Very High" %}</th>
-                                    <th class="landslide_high hum">{% trans "High" %}</th>
-                                    <th class="landslide_mod hum">{% trans "Moderate" %}</th>
-                                    <th class="landslide_low hum">{% trans "Low" %}</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {% for parent in panels.adm_likelihood_pop_building_area.parentdata %}
-                                    <td class="boldRow">{{parent}}</td>
-                                {% endfor %}
-                                {% for child in panels.adm_likelihood_pop_building_area.child %}
-                                    <tr class="selectable" onclick="window.document.location='?page=avalancherisk&code={{child.code}}';">
-                                        {% for item in child.value %}
-                                            <td>{{item}}</td>
-                                        {% endfor %}
-                                    </tr>
-                                {% endfor %}
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
-        </div>
-
     </div>
+{% endblock %}
+
+{% block extra_script %}
+    <script>
+        var centroid = boundary['centroid'];
+        var chosen_label = '{{parent_label}}';
+    </script>
 {% endblock %}
