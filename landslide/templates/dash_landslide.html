@@ -304,11 +304,11 @@
 
     </div>
 
-    {% tolist panels.tabels.lsi_immap panels.charts.bar.lsi_immap as row1 %}
-    {% tolist panels.tabels.lsi_ku panels.charts.bar.lsi_ku as row2 %}
-    {% tolist panels.tabels.ls_s1_wb panels.charts.bar.ls_s1_wb as row3 %}
-    {% tolist panels.tabels.ls_s2_wb panels.charts.bar.ls_s2_wb as row4 %}
-    {% tolist panels.tabels.ls_s3_wb panels.charts.bar.ls_s3_wb as row5 %}
+    {% tolist panels.tables.lsi_immap panels.charts.bar.lsi_immap as row1 %}
+    {% tolist panels.tables.lsi_ku panels.charts.bar.lsi_ku as row2 %}
+    {% tolist panels.tables.ls_s1_wb panels.charts.bar.ls_s1_wb as row3 %}
+    {% tolist panels.tables.ls_s2_wb panels.charts.bar.ls_s2_wb as row4 %}
+    {% tolist panels.tables.ls_s3_wb panels.charts.bar.ls_s3_wb as row5 %}
     {% tolist row1 row2 row3 row4 row5 as rows %}
     {% for row in rows %}
     <div class="row">
@@ -364,7 +364,8 @@
             </div>
         </div>
     </div>
-    {% endfor %}{% endblock %}
+    {% endfor %}
+{% endblock %}
 
 {% block extra_script %}
     <script>
