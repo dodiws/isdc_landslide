@@ -1314,8 +1314,8 @@ def dashboard_landslide(request, filterLock, flag, code, includes=[], excludes=[
 		}		
 		panels.path('charts','bar')[p] = {
 			'title':chart_titles[p],
-			'labels':[LANDSLIDE_TYPES[t] for t in LANDSLIDE_TYPES_ORDER_EXC_VERYLOW]+[_('Not at Risk')],
-			'values':[source.pathget(p,t) or 0 for t in LANDSLIDE_TYPES_ORDER_EXC_VERYLOW]+[not_at_risk],
+			'labels':[LANDSLIDE_TYPES[t] for t in LANDSLIDE_TYPES_ORDER_EXC_VERYLOW],
+			'values':[source.pathget(p,t) or 0 for t in LANDSLIDE_TYPES_ORDER_EXC_VERYLOW],
 		}
 		panels.path('tables')[p] = {
 			'title':table_titles[p],
