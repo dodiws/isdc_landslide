@@ -240,11 +240,11 @@
             </div>
         {% endfor %}
 
-    {% tolist panels.tables.lsi_immap panels.charts.bar.lsi_immap as row1 %}
-    {% tolist panels.tables.lsi_ku panels.charts.bar.lsi_ku as row2 %}
-    {% tolist panels.tables.ls_s1_wb panels.charts.bar.ls_s1_wb as row3 %}
-    {% tolist panels.tables.ls_s2_wb panels.charts.bar.ls_s2_wb as row4 %}
-    {% tolist panels.tables.ls_s3_wb panels.charts.bar.ls_s3_wb as row5 %}
+    {% tolistaddkey "lsi_immap" panels.tables.lsi_immap "lsi_immap" panels.charts.bar.lsi_immap as row1 %}
+    {% tolistaddkey "lsi_ku" panels.tables.lsi_ku "lsi_ku" panels.charts.bar.lsi_ku as row2 %}
+    {% tolistaddkey "ls_s1_wb" panels.tables.ls_s1_wb "ls_s1_wb" panels.charts.bar.ls_s1_wb as row3 %}
+    {% tolistaddkey "ls_s2_wb" panels.tables.ls_s2_wb "ls_s2_wb" panels.charts.bar.ls_s2_wb as row4 %}
+    {% tolistaddkey "ls_s3_wb" panels.tables.ls_s3_wb "ls_s3_wb" panels.charts.bar.ls_s3_wb as row5 %}
     {% tolist row1 row2 row3 row4 row5 as rows %}
     
     {% for row in rows %}
@@ -296,7 +296,7 @@
                     <span class="card-title right">{% readable row.1.total %}</span>
                 </div>
                 <div class="card-image">
-                    <div id="{{ chart_type }}_bar" class="ch-size bar-chart" data-color=colorLandslide data-yaxis='{{ row.1.labels | jsonify | safe }}' data-val='{{ row.1.values | jsonify | safe }}'></div>
+                    <div id="{{ row.1.key }}_bar" class="ch-size bar-chart" data-color=colorLandslide data-yaxis='{{ row.1.labels | jsonify | safe }}' data-val='{{ row.1.values | jsonify | safe }}'></div>
                 </div>
             </div>
         </div>
