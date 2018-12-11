@@ -215,7 +215,7 @@
                             </div>
                         </div>
                         <div class="col s12 l9 xl6">
-                            <div id="" class="map-size"></div>
+                            <div id="leaflet_lndslide_map" class="map-size"></div>
                         </div>
                         <div class="col s12 l12 xl4">
                             <div id="mapInfo"></div>
@@ -225,84 +225,20 @@
             </div>
         </div>
 
-        {% for panel_item_type, panel_item_type_val in panels.items %}
-            {% for panel_type, panel_type_val in panel_item_type_val.items %}
-                {% if  panel_item_type == 'tables' %}
-                    <div class="col s12 xl8">
-                        <div class="card">
-                            <div class="card-content">
-                                <span class="card-title">
-                                    {{ panel_type_val.title }}
-                                </span>
-                                <p>
-                                    {{ panel_type_val.description }}
-                                </p>
-                                <div class="table-responsive-scroll">
-                                    <table class="striped highlight online">
-                                        <thead>
-                                            <tr>
-                                                <th rowspan="2">{% trans "Region" %}</th>
-                                                <th colspan="4">{% trans "Risk Level" %}</th>
-                                            </tr>
-                                            <tr>
-                                                <th class="landslide_vhigh hum">{% trans "Very High" %}</th>
-                                                <th class="landslide_high hum">{% trans "High" %}</th>
-                                                <th class="landslide_mod hum">{% trans "Moderate" %}</th>
-                                                <th class="landslide_low hum">{% trans "Low" %}</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            {% for parent in panel_type_val.parentdata %}
-                                                <td class="boldRow">{{parent}}</td>
-                                            {% endfor %}
-                                            {% for child in panel_type_val.child %}
-                                                <tr class="selectable" onclick="window.document.location='?page=avalancherisk&code={{child.code}}';">
-                                                    {% for item in child.value %}
-                                                        <td>{{item}}</td>
-                                                    {% endfor %}
-                                                </tr>
-                                            {% endfor %}
-                                        </tbody>
-                                    </table>
-                                </div>
-                            </div>
-                        </div>
+        {% for chart_title, chart_val in panels.charts.donut.items %}
+            <div class="col s12 m6 xl4 {% if chart_title == 'lsi_ku' %}offset-xl2{% endif %}">
+                <div class="card card-graph">
+                    <div class="card-header red darken-3 white-text z-depth-2">
+                        <span class="card-title">{{ chart_val.title }}</span>
+                        <i class="left"></i>
+                        <span class="card-title right">{% readable chart_val.total %}</span>
                     </div>
-                {% endif %}
-                {% for chart_type, chart_type_val in panel_type_val.items %}
-                    {% if  panel_item_type == 'charts' and panel_type == 'bar' %}
-                        <div class="col s12 m6 xl4">
-                            <div class="card card-graph">
-                                <div class="card-header red darken-3 white-text z-depth-2">
-                                    <span class="card-title">{{ chart_type_val.title }}</span>
-                                    <i class="left"></i>
-                                    <span class="card-title right">{% readable chart_type_val.total %}</span>
-                                </div>
-                                <div class="card-image">
-                                    <div id="{{ chart_type }}_bar" class="ch-size bar-chart" data-color=colorLandslide data-yaxis='{{ chart_type_val.labels | jsonify | safe }}' data-val='{{ chart_type_val.values | jsonify | safe }}'></div>
-                                </div>
-                            </div>
-                        </div>
-                    {% endif %}
-                    {% if  panel_item_type == 'charts' and panel_type == 'donut' %}
-                        <div class="col s12 m6 xl4">
-                            <div class="card card-graph">
-                                <div class="card-header red darken-3 white-text z-depth-2">
-                                    <span class="card-title">{{ chart_type_val.title }}</span>
-                                    <i class="left"></i>
-                                    <span class="card-title right">{% readable chart_type_val.total %}</span>
-                                </div>
-                                <div class="card-image">
-                                    <div id="{{ chart_type }}_donut" class="ch-size donut-chart" data-color=colorLandslide data-val='{{ chart_type_val.child | jsonify | safe }}'></div>
-                                </div>
-                            </div>
-                        </div>
-                    {% endif %}
-                {% endfor %}
-            {% endfor %}
+                    <div class="card-image">
+                        <div id="{{ chart_title }}_donut" class="ch-size donut-chart" data-color=colorLandslide data-val='{{ chart_val.child | jsonify | safe }}'></div>
+                    </div>
+                </div>
+            </div>
         {% endfor %}
-
-    </div>
 
     {% tolist panels.tables.lsi_immap panels.charts.bar.lsi_immap as row1 %}
     {% tolist panels.tables.lsi_ku panels.charts.bar.lsi_ku as row2 %}
@@ -310,8 +246,8 @@
     {% tolist panels.tables.ls_s2_wb panels.charts.bar.ls_s2_wb as row4 %}
     {% tolist panels.tables.ls_s3_wb panels.charts.bar.ls_s3_wb as row5 %}
     {% tolist row1 row2 row3 row4 row5 as rows %}
+    
     {% for row in rows %}
-    <div class="row">
         <div class="col s12 xl8">
             <div class="card">
                 <div class="card-content">
@@ -322,7 +258,7 @@
                         {{ row.0.description }}
                     </p>
                     <div class="table-responsive-scroll">
-                        <table class="striped highlight online">
+                        <table class="striped highlight landslide-color online">
                             <thead>
                                 <tr>
                                     <th rowspan="2">{% trans "Region" %}</th>
@@ -337,13 +273,14 @@
                             </thead>
                             <tbody>
                                 {% for parent in row.0.parentdata %}
-                                <td class="boldRow">{{parent}}</td>
-                                {% endfor %} {% for child in row.0.child %}
-                                <tr class="selectable" onclick="window.document.location='?page=avalancherisk&code={{child.code}}';">
-                                    {% for item in child.value %}
-                                    <td>{{item}}</td>
-                                    {% endfor %}
-                                </tr>
+                                    <td class="boldRow">{{parent}}</td>
+                                {% endfor %} 
+                                {% for child in row.0.child %}
+                                    <tr class="selectable" onclick="window.document.location='?page=avalancherisk&code={{child.code}}';">
+                                        {% for item in child.value %}
+                                            <td>{{item}}</td>
+                                        {% endfor %}
+                                    </tr>
                                 {% endfor %}
                             </tbody>
                         </table>
@@ -363,7 +300,6 @@
                 </div>
             </div>
         </div>
-    </div>
     {% endfor %}
 {% endblock %}
 
@@ -371,5 +307,8 @@
     <script>
         var centroid = boundary['centroid'];
         var chosen_label = '{{parent_label}}';
+        var level_risk = ['{% trans "Low" %}', '{% trans "Moderate" %}', '{% trans "High" %}', '{% trans "Very High" %}' ];
+        var level_risk_pie = ['{% trans "Low" %}', '{% trans "Moderate" %}', '{% trans "High" %}', '{% trans "Very High" %}', '{% trans "Not at Risk" %}' ];
+        
     </script>
 {% endblock %}
