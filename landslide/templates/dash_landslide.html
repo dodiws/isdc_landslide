@@ -9,7 +9,7 @@
 {% endblock dashboard_breadcrumb %}
 
 {% block dashboard_content %}
-    <div class="row">
+    <div class="row no-margin">
         {% include "qlink_list.html" %}
     </div>
 
@@ -230,11 +230,17 @@
                 <div class="card card-graph">
                     <div class="card-header red darken-3 white-text z-depth-2">
                         <span class="card-title">{{ chart_val.title }}</span>
-                        <i class="left"></i>
-                        <span class="card-title right">{% readable chart_val.total %}</span>
+                        <!-- <i class="left"></i> -->
+                        <!-- <span class="card-title right">{% readable chart_val.total %}</span> -->
                     </div>
                     <div class="card-image">
                         <div id="{{ chart_title }}_donut" class="ch-size donut-chart" data-color=colorLandslide data-val='{{ chart_val.child | jsonify | safe }}'></div>
+                        <div class="center-align grey-text text-darken-2 affected-count">
+                            <span class="red-text text-darken-3">{% readable chart_val.total_atrisk %}</span>
+                            of
+                            <span class="red-text text-darken-3">{% readable chart_val.total %}</span>
+                            at risk
+                        </div>
                     </div>
                 </div>
             </div>
@@ -292,11 +298,10 @@
             <div class="card card-graph">
                 <div class="card-header red darken-3 white-text z-depth-2">
                     <span class="card-title">{{ row.1.title }}</span>
-                    <i class="left"></i>
-                    <span class="card-title right">{% readable row.1.total %}</span>
+                    <!-- <span class="card-title right">{% readable row.1.total %}</span> -->
                 </div>
                 <div class="card-image">
-                    <div id="{{ row.1.key }}_bar" class="ch-size bar-chart" data-color=colorLandslide data-yaxis='{{ row.1.labels | jsonify | safe }}' data-val='{{ row.1.values | jsonify | safe }}'></div>
+                    <div id="{{ row.1.key }}_bar" class="ch-size bar-chart" data-color=colorLandslide data-colorpoint="true" data-legend="false" data-xaxis='{% trans "Population" %}' data-yaxis='{{ row.1.labels | jsonify | safe }}' data-val='[{"data": {{ row.1.values | jsonify | safe }}}]'></div>
                 </div>
             </div>
         </div>
