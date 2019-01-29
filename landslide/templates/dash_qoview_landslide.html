@@ -1,0 +1,3 @@
+{% with chart=data.panels.charts.donut.lsi_immap color="colorAccess" colorpoint="true" %}
+{% include "dash_chart_donut.html" with title=chart.title icon="icon-people_affected_population" key="landslide_lsi_immap" values=chart.child %}
+{% endwith %}

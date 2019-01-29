@@ -99,6 +99,9 @@ from geonode.maps.views import _resolve_map, _PERMISSION_MSG_VIEW
 from urlparse import urlparse
 # import urllib2
 from landslide.enumerations import LANDSLIDE_TYPES, LANDSLIDE_TYPES_ORDER, LANDSLIDE_INDEX_TYPES, LANDSLIDE_INDEX_TYPES_ORDER
+from django.conf.urls import url
+from tastypie.utils import trailing_slash
+from tastypie.authentication import BasicAuthentication, SessionAuthentication, OAuthAuthentication
 
 def get_dashboard_meta():
 	return {
@@ -113,10 +116,10 @@ def get_dashboard_meta():
 		'menutitle': 'Landslide',
 	}
 
-def getQuickOverview(request, filterLock, flag, code, includes=[], excludes=[]):
-	response = {}
-	response.update(getLandslideRisk(request, filterLock, flag, code, includes=['lsi_immap']))
-	return response
+# def getQuickOverview(request, filterLock, flag, code, includes=[], excludes=[]):
+# 	response = {}
+# 	response.update(getLandslideRisk(request, filterLock, flag, code, includes=['lsi_immap']))
+# 	return response
 
 # moved from geodb.geo_calc
 
@@ -298,14 +301,14 @@ def getLandslideRiskChild(filterLock, flag, code):
 
 	return response
 
-def getLandslideRisk(request, filterLock, flag, code, includes=[], excludes=[]):
-	response = dict_ext()
+def getLandslideRisk(request, filterLock, flag, code, includes=[], excludes=[], response=dict_ext()):
+	# response = dict_ext()
 	# if include_section('getCommonUse', includes, excludes):
 	#     response = getCommonUse(request, flag, code)
-	if include_section('totals', includes, excludes):
+	if include_section('baseline', includes, excludes):
 		# targetBase = AfgLndcrva.objects.all()
 
-		response['baseline'] = getBaseline(request, filterLock, flag, code, includes=['pop_lc','building_lc'])
+		response['baseline'] = response.pathget('cache','getBaseline','baseline') or getBaseline(request, filterLock, flag, code, includes=['pop_lc','building_lc'])
 		# if flag not in ['entireAfg','currentProvince']:
 		#     response['Population']=getTotalPop(filterLock, flag, code, targetBase)
 		#     response['Area']=getTotalArea(filterLock, flag, code, targetBase)
@@ -321,7 +324,7 @@ def getLandslideRisk(request, filterLock, flag, code, includes=[], excludes=[]):
 	if include_section('lc_child', includes, excludes):
 		response['lc_child'] = getLandslideRiskChild(filterLock, flag, code)
 
-	if include_section('lsi_immap', includes, excludes):
+	if include_section('lsi', includes, excludes):
 		if flag=='entireAfg':
 			sql = "select \
 					coalesce(round(sum(case \
@@ -1277,14 +1280,120 @@ def getLandSlideInfoVillages(request):
 	return render_to_response(template,
 								  RequestContext(request, context_dict))
 
-def dashboard_landslide(request, filterLock, flag, code, includes=[], excludes=[]):
+def getLandslideInfoVillagesCommon(village):
+	# template = './landslideinfo.html'
+	# village = request.GET["v"]
+	currentdate = datetime.datetime.utcnow()
+	year = currentdate.strftime("%Y")
+	month = currentdate.strftime("%m")
+	day = currentdate.strftime("%d")
 
-	response = dict_ext()
+	context_dict = getCommonVillageData(village)
+
+	px = get_object_or_404(AfgLspAffpplp, vuid=village)
+	try:
+		context_dict['landslide_risk'] = px.lsi_immap
+	except:
+		context_dict['landslide_risk'] = 0
+
+	try:
+		context_dict['landslide_risk_lsi_ku'] = px.lsi_ku
+	except:
+		context_dict['landslide_risk_lsi_ku'] = 0
+
+	try:
+		context_dict['landslide_risk_ls_s1_wb'] = px.ls_s1_wb
+	except:
+		context_dict['landslide_risk_ls_s1_wb'] = 0
+
+	try:
+		context_dict['landslide_risk_ls_s2_wb'] = px.ls_s2_wb
+	except:
+		context_dict['landslide_risk_ls_s2_wb'] = 0
+
+	try:
+		context_dict['landslide_risk_ls_s3_wb'] = px.ls_s3_wb
+	except:
+		context_dict['landslide_risk_ls_s3_wb'] = 0
+
+	if context_dict['landslide_risk'] >= 7:
+		context_dict['landslide_risk'] = 'Very High'
+	elif context_dict['landslide_risk'] >= 5 and context_dict['landslide_risk'] < 7:
+		context_dict['landslide_risk'] = 'High'
+	elif context_dict['landslide_risk'] >= 4 and context_dict['landslide_risk'] < 5:
+		context_dict['landslide_risk'] = 'Moderate'
+	elif context_dict['landslide_risk'] >= 2 and context_dict['landslide_risk'] < 4:
+		context_dict['landslide_risk'] = 'Low'
+	elif context_dict['landslide_risk'] >= 1 and context_dict['landslide_risk'] < 2:
+		context_dict['landslide_risk'] = 'Very Low'
+	else :
+		context_dict['landslide_risk'] = 'None'
+
+
+	if context_dict['landslide_risk_lsi_ku'] >= 7:
+		context_dict['landslide_risk_lsi_ku'] = 'Very High'
+	elif context_dict['landslide_risk_lsi_ku'] >= 5 and context_dict['landslide_risk_lsi_ku'] < 7:
+		context_dict['landslide_risk_lsi_ku'] = 'High'
+	elif context_dict['landslide_risk_lsi_ku'] >= 4 and context_dict['landslide_risk_lsi_ku'] < 5:
+		context_dict['landslide_risk_lsi_ku'] = 'Moderate'
+	elif context_dict['landslide_risk_lsi_ku'] >= 2 and context_dict['landslide_risk_lsi_ku'] < 4:
+		context_dict['landslide_risk_lsi_ku'] = 'Low'
+	elif context_dict['landslide_risk_lsi_ku'] >= 1 and context_dict['landslide_risk_lsi_ku'] < 2:
+		context_dict['landslide_risk_lsi_ku'] = 'Very Low'
+	else :
+		context_dict['landslide_risk_lsi_ku'] = 'None'
+
+	if context_dict['landslide_risk_ls_s1_wb'] >= 7:
+		context_dict['landslide_risk_ls_s1_wb'] = 'Very High'
+	elif context_dict['landslide_risk_ls_s1_wb'] >= 5 and context_dict['landslide_risk_ls_s1_wb'] < 7:
+		context_dict['landslide_risk_ls_s1_wb'] = 'High'
+	elif context_dict['landslide_risk_ls_s1_wb'] >= 4 and context_dict['landslide_risk_ls_s1_wb'] < 5:
+		context_dict['landslide_risk_ls_s1_wb'] = 'Moderate'
+	elif context_dict['landslide_risk_ls_s1_wb'] >= 2 and context_dict['landslide_risk_ls_s1_wb'] < 4:
+		context_dict['landslide_risk_ls_s1_wb'] = 'Low'
+	elif context_dict['landslide_risk_ls_s1_wb'] >= 1 and context_dict['landslide_risk_ls_s1_wb'] < 2:
+		context_dict['landslide_risk_ls_s1_wb'] = 'Very Low'
+	else :
+		context_dict['landslide_risk_ls_s1_wb'] = 'None'
+
+	if context_dict['landslide_risk_ls_s2_wb'] >= 7:
+		context_dict['landslide_risk_ls_s2_wb'] = 'Very High'
+	elif context_dict['landslide_risk_ls_s2_wb'] >= 5 and context_dict['landslide_risk_ls_s2_wb'] < 7:
+		context_dict['landslide_risk_ls_s2_wb'] = 'High'
+	elif context_dict['landslide_risk_ls_s2_wb'] >= 4 and context_dict['landslide_risk_ls_s2_wb'] < 5:
+		context_dict['landslide_risk_ls_s2_wb'] = 'Moderate'
+	elif context_dict['landslide_risk_ls_s2_wb'] >= 2 and context_dict['landslide_risk_ls_s2_wb'] < 4:
+		context_dict['landslide_risk_ls_s2_wb'] = 'Low'
+	elif context_dict['landslide_risk_ls_s2_wb'] >= 1 and context_dict['landslide_risk_ls_s2_wb'] < 2:
+		context_dict['landslide_risk_ls_s2_wb'] = 'Very Low'
+	else :
+		context_dict['landslide_risk_ls_s2_wb'] = 'None'
+
+	if context_dict['landslide_risk_ls_s3_wb'] >= 7:
+		context_dict['landslide_risk_ls_s3_wb'] = 'Very High'
+	elif context_dict['landslide_risk_ls_s3_wb'] >= 5 and context_dict['landslide_risk_ls_s3_wb'] < 7:
+		context_dict['landslide_risk_ls_s3_wb'] = 'High'
+	elif context_dict['landslide_risk_ls_s3_wb'] >= 4 and context_dict['landslide_risk_ls_s3_wb'] < 5:
+		context_dict['landslide_risk_ls_s3_wb'] = 'Moderate'
+	elif context_dict['landslide_risk_ls_s3_wb'] >= 2 and context_dict['landslide_risk_ls_s3_wb'] < 4:
+		context_dict['landslide_risk_ls_s3_wb'] = 'Low'
+	elif context_dict['landslide_risk_ls_s3_wb'] >= 1 and context_dict['landslide_risk_ls_s3_wb'] < 2:
+		context_dict['landslide_risk_ls_s3_wb'] = 'Very Low'
+	else :
+		context_dict['landslide_risk_ls_s3_wb'] = 'None'
+
+	context_dict.pop('position')
+
+	return context_dict
+
+def dashboard_landslide(request, filterLock, flag, code, includes=[], excludes=[], response=dict_ext()):
+
+	# response = dict_ext()
 
 	if include_section('getCommonUse', includes, excludes):
 		response.update(getCommonUse(request, flag, code))
 
-	response['source'] = source = dict_ext(getLandslideRisk(request, filterLock, flag, code, includes, excludes))
+	response['source'] = source = response.pathget('cache','getLandslideRisk') or dict_ext(getLandslideRisk(request, filterLock, flag, code, includes, excludes))
 	response['panels'] = panels = dict_ext()
 	baseline = response['source']['baseline']
 	LANDSLIDE_TYPES_ORDER_EXC_VERYLOW = list_ext(LANDSLIDE_TYPES_ORDER).without(['very_low'])
@@ -1323,7 +1432,7 @@ def dashboard_landslide(request, filterLock, flag, code, includes=[], excludes=[
 			'child':[{
 				'value':[v['na_en']]+[v['%s_%s'%(p,t)] for t in LANDSLIDE_TYPES_ORDER_EXC_VERYLOW],
 				'code':v['code'],
-			} for v in source['lc_child']],
+			} for v in source.pathget('lc_child') or []],
 		}
 
 	if include_section('GeoJson', includes, excludes):
@@ -1361,9 +1470,119 @@ def geojsonadd_landslide(response):
 def getLandslideStatistic(request,filterLock, flag, code):
 
 	panels = dict_ext(dashboard_landslide(request, filterLock, flag, code)['panels'])
+	panels_list = dict_ext()
 	for k,v in panels['charts'].items():
-		v = dict_ext(v).valueslistbykey(LANDSLIDE_INDEX_TYPES_ORDER,addkeyasattr=True)
-	panels['tables'] = panels['tables'].valueslistbykey(LANDSLIDE_INDEX_TYPES_ORDER,addkeyasattr=True)
+		panels_list.path('charts')[k] = dict_ext(v).valueslistbykey(LANDSLIDE_INDEX_TYPES_ORDER,addkeyasattr=True)
+	panels_list['tables'] = panels['tables'].valueslistbykey(LANDSLIDE_INDEX_TYPES_ORDER,addkeyasattr=True)
 
-	return {'panels_list':panels}
+	return {'panels_list':panels_list}
+
+class LandslideInfoVillages(Resource):
+
+	class Meta:
+		resource_name = 'landslide'
+		authentication = SessionAuthentication()
+
+	def prepend_urls(self):
+		name = self._meta.resource_name
+		return [
+			url(r"^%s%s$" % (name, trailing_slash()), self.wrap_view('getdata'), name='get_%s'%(name)),
+		]
+
+	def getdata(self, request, **kwargs):
+		self.method_check(request, allowed=['get'])
+		self.is_authenticated(request)
+		self.throttle_check(request)
+
+		data = none_to_zero(getLandslideInfoVillagesCommon(request.GET.get('vuid')))
+
+		LANDSLIDE_TITLE_ORDER = ['None']+[LANDSLIDE_TYPES[i] for i in LANDSLIDE_TYPES_ORDER]
+		LANDSLIDE_INDEXES = ['landslide_risk','landslide_risk_lsi_ku','landslide_risk_ls_s1_wb','landslide_risk_ls_s2_wb','landslide_risk_ls_s3_wb',]
+		values = {}
+		for lsi in LANDSLIDE_INDEXES:
+			values[lsi] = ['','','','','','',]
+			values[lsi][LANDSLIDE_TITLE_ORDER.index(data[lsi])] = 'X'
+
+		response = {
+			'panels_list':{
+				'tables':[
+					{
+						'key':'base_info',
+						'child':[
+							[_('Settlement'),data.get('name_en')],
+							[_('District'),data.get('dist_na_en')],
+							[_('Province'),data.get('prov_na_en')],
+							[_('Area'),'{:,.1f} km2'.format((data.get('area_sqm') or 0)/1000000,)],
+							[_('Total Population'),'{:,} km2'.format(data.get('area_population'))],
+							[_('Number of Buildings'),'{:,} km2'.format(data.get('vuid_buildings'))],
+						],
+					},
+					{
+						'key':'landslide_susceptibility',
+						'title':_('Landslide Susceptibility')+'*',
+						'columntitles':[_('No Risk')]+[LANDSLIDE_TYPES[l] for l in LANDSLIDE_TYPES_ORDER],
+						'child':[
+							[_("Landslide Indexes (iMMAP 2017)"),]+values['landslide_risk'],
+							[_("Multi-criteria Landslide Susceptibility Index")+'*',]+values['landslide_risk_lsi_ku'],
+							[_("Landslide susceptibility - bedrock landslides in slow evolution (S1)")+'**',]+values['landslide_risk_ls_s1_wb'],
+							[_("Landslide susceptibility - bedrock landslides in rapid evolution (S2)")+'**',]+values['landslide_risk_ls_s2_wb'],
+							[_("Landslide susceptibility - cover material in rapid evolution (S3)")+'**',]+values['landslide_risk_ls_s3_wb'],
+						],
+						'footnotes':[
+							'*'+_('University of Kansas / University of Nebraska Omaha. Nathan Schlagel, et al (2016)'),
+							'**'+_('World Bank (2016)'),
+						]
+					},
+				],
+				'desc':[
+					{
+						'title':_("Multi-criteria Landslide Susceptibility Index"),
+						'desc':[
+							_("Layers were combined as a weighted overlay to create a landslide susceptibility index (LSI). Lithology, fault, river, and road data compiled by the USGS were derived from both pre- and mid-war sources of varying detail. A 10 year subset of earthquake data was used to reduce processing time; earthquake density was weighted by magnitude. An NDVI tile was used as vegetation data covering most of the country. Slope and aspect data were derived from 90m SRTM. Aspect and earthquake density diagrams not included because of their small scale features. Each factor was assigned weights for their own min-max range, and expected contribution to landslide susceptibility relative to each other developed through literature review.  Published studies of known landslides and corresponding Google Earth imagery were compared to same locations in the landslide susceptibility map")
+						],
+					},
+					{
+						'title':_("Resolution 500m"),
+						'desc':[
+							_("Observations Model results show high LSI values in areas with observed failures. Loess, granite, and schist/gneiss are the most susceptible lithologies with greatest risks in regions of high seismicity and faulting. Results appear to show slide deposits as lower susceptibility, and source slopes as higher, which may be used to assess reactivation potential. Such techniques can be widely applied. However, the uniqueness associated with assignment of relative weights to contributing factors makes models for any given location unique and inapplicable to other areas without alteration. Although advances in methodology and data quality would allow for improvements in landslide susceptibility analyses, comparisons in this study show that reasonable approximations can still be made with relatively coarse data sets")
+						],
+					},
+					{
+						'title':_("Landslide susceptibility - bedrock landslides in slow evolution (S1)"),
+						'desc':[
+							_("including: rotational slides, translational slides, earth flows and lateral spreading. Susceptibility values are represented according the following scale: 0=Null; 1-3=Low; 4-5=Moderate; 6=High; 7-9=Very High	"),
+							_("Resolution: 30m. A spatial distribution of landslide susceptibility is defined using a GIS based, weighted scoring of contributing factors, including slope angle, lithology, landcover, terrain curvature, distance from geological faults, and distance from roads. These sources are modelled flow(run-out) and accumulation of debris areas to create landslide hazard maps"),
+						],
+					},
+					{
+						'title':_("Landslide susceptibility - bedrock landslides in rapid evolution (S2)"),
+						'desc':[
+							_("Afghanistan landslide susceptibility map for bedrock landslides in rapid evolution (S2), nationwide. This map shows the susceptibility for bedrock landslides in rapid evolution, including: falls and toppling. Susceptibility values are represented according the following scale: 0=Null; 1-3=Low; 4-5=Moderate; 6=High; 7-9=Very High")
+						],
+					},
+					{
+						'title':_("Landslide susceptibility - cover material in rapid evolution (S3) "),
+						'desc':[
+							_("Afghanistan landslide susceptibility map for cover material landslides in rapid evolution (S3), nationwide. This map shows the susceptibility for cover material landslides in rapid evolution, including: debris-mud flows. Susceptibility values are represented according the following scale: 0=Null; 1-3=Low; 4-5=Moderate; 6=High; 7-9=Very High")
+						],
+					},
+				],
+			},
+		}
+
+		return self.create_response(request, response)
+
+def getQuickOverview(request, filterLock, flag, code, response=dict_ext()):
+	
+	response.path('cache')['getLandslideRisk'] = response.pathget('cache','getLandslideRisk') or getLandslideRisk(request, filterLock, flag, code, includes=['baseline','lsi'], response=response.within('cache'))
+	dashboard_landslide_response = dashboard_landslide(request, filterLock, flag, code, includes=[''], response=response.within('cache','parent_label'))
+	
+	return {
+		'templates':{
+			'panels':'dash_qoview_landslide.html',
+		},
+		'data':{
+			'panels':dict_ext(dashboard_landslide_response).pathget('panels'),
+		},
+	}
 	
