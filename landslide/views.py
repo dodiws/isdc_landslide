@@ -806,9 +806,9 @@ class getLandslide(ModelResource):
 		boundaryFilter = json.loads(request.body)
 
 		wkts = ['ST_GeomFromText(\'%s\',4326)'%(i) for i in boundaryFilter.get('spatialfilter')]
-		bring = wkts[-1] if len(wkts) else None
+		wkt = list_ext(boundaryFilter.get('spatialfilter',[])).get(-1)
 		filterLock = 'ST_Union(ARRAY[%s])'%(','.join(wkts))
-		boundaryFilter = json.loads(request.body)
+		# boundaryFilter = json.loads(request.body)
 
 		response = getLandslideStatistic(request, filterLock, boundaryFilter.get('flag'), boundaryFilter.get('code'))
 
@@ -1474,6 +1474,9 @@ def getLandslideStatistic(request,filterLock, flag, code):
 	for k,v in panels['charts'].items():
 		panels_list.path('charts')[k] = dict_ext(v).valueslistbykey(LANDSLIDE_INDEX_TYPES_ORDER,addkeyasattr=True)
 	panels_list['tables'] = panels['tables'].valueslistbykey(LANDSLIDE_INDEX_TYPES_ORDER,addkeyasattr=True)
+	for table in panels_list['tables']:
+		table['child'] = [table['parentdata']] + [i['value'] for i in table['child']]
+		del table['parentdata']
 
 	return {'panels_list':panels_list}
 
